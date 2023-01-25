@@ -1,0 +1,7 @@
+flask
+uwsgi
+bootstrap-flask
+flask-wtf
+wtforms
+folium
+pandas

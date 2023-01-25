@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+    tech-days:
+        image: tech-days:latest
+        container_name: tech-days
+        restart: always
+        build: .
+        volumes:
+            - /var/log/tech-days/:/var/log/tech-days/
+        expose:
+            - 5080
+        labels:
+            - "traefik.enable=true" # enable traefik
+            - "traefik.http.routers.tech-days.rule=Host(`tech-days.internal`)"
+            - "traefik.http.routers.tech-days.entrypoints=web"
+            - "traefik.http.routers.tech-days-secure.rule=Host(`tech-days.internal`)" 
+            - "traefik.http.routers.tech-days-secure.entrypoints=websecure"                                            
+            - "traefik.http.routers.tech-days.middlewares=to-https"
+            - "traefik.http.middlewares.to-https.redirectscheme.scheme=https"                                                 
+            - "traefik.http.routers.tech-days-secure.tls=true"                                                         
+            - "traefik.http.routers.tech-days-secure.tls.certresolver=letsencrypt"
+        networks:
+            - default
+
+networks:
+    default:
+      external:
+        name: gateway
