@@ -8,17 +8,29 @@ import folium
 from folium.plugins import MarkerCluster
 import pandas as pd
 import requests
+import csv
+
+
 
 app = Flask(__name__)
 bootstrap = Bootstrap5(app)
 app.config['SECRET_KEY'] = '123456790'
+
+activities = dict()
+with open('int_courts_naf_rev_2.csv', newline='') as csvfile:
+    reader = csv.DictReader(csvfile, delimiter=';')
+    for row in reader:
+        print(row)
+        activities[row['Code']] = row['Intitules']
+        
+    
 
 class Form(FlaskForm):
     denomination = StringField('Denomination de la société', validators=[DataRequired(), Length(1, 20)])
     submit = SubmitField()
 
 def callApi(societe_name):
-    url = "https://urlARemplacer/search?q="+societe_name
+    url = "https://recherche-entreprises.api.gouv.fr/search?q="+societe_name
 
     payload={}
     headers = {
@@ -54,15 +66,19 @@ def mapview():
         data = form_societe.denomination.data
         response = callApi(data)
         for r in response["results"]:
-            print(r["nom_complet"])
-            latitude  = (r["siege"]["coordonnees"]).split(",")[0]
-            longitude = (r["siege"]["coordonnees"]).split(",")[1]
-            popup = r["nom_raison_sociale"]+"<br/>Adresse : "+r["siege"]["geo_adresse"]+"<br/>Code activité : "+r["activite_principale"]
-            folium.Marker(
-                location=[latitude, longitude],
-                popup=popup,
-                icon=folium.Icon(color="blue", icon="ok-sign"),
-            ).add_to(marker_cluster)
+            if r["siege"]["coordonnees"] is not None:
+                print(r["nom_complet"])
+            
+                latitude  = (r["siege"]["coordonnees"]).split(",")[0]
+                longitude = (r["siege"]["coordonnees"]).split(",")[1]
+                
+                    
+                popup = r["nom_raison_sociale"]+"<br/>Adresse : "+r["siege"]["geo_adresse"]+"<br/>Code activité : "+r["activite_principale"] +"<br/> Intitules de l'activités : "+activities[r["activite_principale"]]
+                folium.Marker(
+                    location=[latitude, longitude],
+                    popup=popup,
+                    icon=folium.Icon(color="blue", icon="ok-sign"),
+                ).add_to(marker_cluster)
         m.get_root().render()
         header = m.get_root().header.render()
         body_html = m.get_root().html.render()
