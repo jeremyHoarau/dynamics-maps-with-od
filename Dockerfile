@@ -11,4 +11,6 @@ RUN pip install -r requirements.txt
 # copy the content of the local src directory to the working directory
 COPY ./ .
 
+EXPOSE 5080
+
 CMD [ "uwsgi", "--ini","uwsgi.ini" ]
